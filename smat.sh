@@ -38,17 +38,6 @@ flac16_to_v0 () {
 	fi
 }
 
-320_to_v0 () {
-	[ ! -d "output/V0" ] && mkdir -p output/V0
-	echo "###Transcoding to MP3 V0###"
-	parallel ffmpeg -loglevel error -i {} -qscale:a 0 ./output/V0/{.}.mp3 ::: ./*.mp3
-	cp cover.jpg output/V0
-	if [ $maketorrents = true ]
-	then
-		mktorrent -l 19 -p -s RED -a $announceurl "./output/V0/" -o "./output/$artist - $album ($date) [MP3 V0].torrent" > /dev/null
-	fi
-}
-
 rename_folders () {
 	[ -d "output/FLAC16" ] && mkdir "output/$artist - $album ($date) [FLAC 16/48]/" && mv output/FLAC16/* "output/$artist - $album ($date) [FLAC 16/48]/"
 	[ -d "output/320" ] && mkdir "output/$artist - $album ($date) [MP3 320]/" && mv output/320/* "output/$artist - $album ($date) [MP3 320]/"
@@ -88,15 +77,6 @@ then
 	then
 		flac16_to_320
 		flac16_to_v0
-	fi
-elif [ $codec = "mp3" ]
-then
-	mp3_bitrate=$(ffprobe -v quiet -of json -show_streams -select_streams a "files[0]}" | jq -r .streams[].bit_rate)
-	if [ $mp3_bitrate = 320000 ]
-	then
-		320_to_v0
-	else
-		echo "MP3 has invalid bitrate."
 	fi
 fi
 
